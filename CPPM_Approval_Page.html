@@ -223,7 +223,6 @@ function loadDemo() { loadReport(DEMO_DATA); }
 
 function loadReport(data) {
   reportData = data;
-  Object.keys(lineDecisions).forEach(function(k) { delete lineDecisions[k]; });
   data.lines.forEach(function(l) {
     lineDecisions[l.id] = { decision: null, comment: '' };
   });
@@ -291,12 +290,12 @@ function renderReport() {
       '<div class="aline-body">' +
         receiptInfo +
         '<div class="decision-row">' +
-          ''<button class="dec-btn approve" id="app-btn-' + l.id + '" onclick="setDecision(\'' + l.id + '\',\'approve\')">✓ Approve</button>' +
-'<button class="dec-btn deny" id="den-btn-' + l.id + '" onclick="setDecision(\'' + l.id + '\',\'deny\')">✕ Deny</button>' +
+          '<button class="dec-btn approve" id="app-btn-' + l.id + '" onclick="setDecision(\'' + l.id + '\',\'approve\')">✓ Approve</button>' +
+          '<button class="dec-btn deny" id="den-btn-' + l.id + '" onclick="setDecision(\'' + l.id + '\',\'deny\')">✕ Deny</button>' +
         '</div>' +
         '<div class="comment-row">' +
-      '<textarea class="comment-input" id="comment-' + l.id + '" placeholder="e.g. Approved — within policy. / Denied — over lodging cap, prior approval required." oninput="onCommentChange(\'' + l.id + '\')"></textarea>' +
-          '<textarea class="comment-input" id="comment-' + l.id + '" placeholder="e.g. Approved — within policy. / Denied — over lodging cap, prior approval required." oninput="onCommentChange(' + l.id + ')"></textarea>' +
+          '<div class="comment-label" id="comment-label-' + l.id + '">Comment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-light)">(optional for approvals, recommended for denials)</span></div>' +
+          '<textarea class="comment-input" id="comment-' + l.id + '" placeholder="e.g. Approved — within policy. / Denied — over lodging cap, prior approval required." oninput="onCommentChange(\'' + l.id + '\')"></textarea>' +
         '</div>' +
       '</div>';
 
@@ -411,7 +410,7 @@ function submitDecision() {
 
   // POST to Power Automate callback URL if set
   // The CALLBACK_URL is passed in from Power Automate when generating this page's link
-  var callbackUrl = reportData.callbackUrl || getParam('callback');
+  var callbackUrl = getParam('callback');
   if (callbackUrl) {
     fetch(callbackUrl, {
       method: 'POST',
