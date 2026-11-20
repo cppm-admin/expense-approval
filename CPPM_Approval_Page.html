@@ -291,11 +291,11 @@ function renderReport() {
       '<div class="aline-body">' +
         receiptInfo +
         '<div class="decision-row">' +
-          '<button class="dec-btn approve" id="app-btn-' + l.id + '" onclick="setDecision(' + l.id + ',\'approve\')">✓ Approve</button>' +
-          '<button class="dec-btn deny" id="den-btn-' + l.id + '" onclick="setDecision(' + l.id + ',\'deny\')">✕ Deny</button>' +
+          ''<button class="dec-btn approve" id="app-btn-' + l.id + '" onclick="setDecision(\'' + l.id + '\',\'approve\')">✓ Approve</button>' +
+'<button class="dec-btn deny" id="den-btn-' + l.id + '" onclick="setDecision(\'' + l.id + '\',\'deny\')">✕ Deny</button>' +
         '</div>' +
         '<div class="comment-row">' +
-          '<div class="comment-label" id="comment-label-' + l.id + '">Comment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-light)">(optional for approvals, recommended for denials)</span></div>' +
+      '<textarea class="comment-input" id="comment-' + l.id + '" placeholder="e.g. Approved — within policy. / Denied — over lodging cap, prior approval required." oninput="onCommentChange(\'' + l.id + '\')"></textarea>' +
           '<textarea class="comment-input" id="comment-' + l.id + '" placeholder="e.g. Approved — within policy. / Denied — over lodging cap, prior approval required." oninput="onCommentChange(' + l.id + ')"></textarea>' +
         '</div>' +
       '</div>';
