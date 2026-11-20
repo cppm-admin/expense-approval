@@ -223,6 +223,7 @@ function loadDemo() { loadReport(DEMO_DATA); }
 
 function loadReport(data) {
   reportData = data;
+  Object.keys(lineDecisions).forEach(function(k) { delete lineDecisions[k]; });
   data.lines.forEach(function(l) {
     lineDecisions[l.id] = { decision: null, comment: '' };
   });
