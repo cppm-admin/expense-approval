@@ -410,7 +410,7 @@ function submitDecision() {
 
   // POST to Power Automate callback URL if set
   // The CALLBACK_URL is passed in from Power Automate when generating this page's link
-  var callbackUrl = getParam('callback');
+  var callbackUrl = (reportData && reportData.callbackUrl) || getParam('callback');
   if (callbackUrl) {
     fetch(callbackUrl, {
       method: 'POST',
