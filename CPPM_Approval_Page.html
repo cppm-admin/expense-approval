@@ -455,7 +455,8 @@ function getParam(name) {
   var encoded = getParam('data');
   if (encoded) {
     try {
-      var data = JSON.parse(atob(encoded));
+      var decoded = atob(encoded).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+      var data = JSON.parse(decoded);
       // Parse expenseLines if it's a plain-text pipe-delimited string
       if (typeof data.expenseLines === 'string') {
         var lines = data.expenseLines.split('\n').filter(function(l) { return l.trim(); });
