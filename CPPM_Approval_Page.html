@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CPPM Expense Approval</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1C2B3A;--navy-mid:#2E4057;--navy-light:#3D5A80;
+  --accent:#E07B4F;--cream:#F7F4EF;--cream-dark:#EDE9E1;
+  --text:#1C2B3A;--text-mid:#4A5568;--text-light:#718096;
+  --success:#2D7A4F;--success-bg:#EAF4EE;
+  --warning:#B45309;--warning-bg:#FEF3C7;
+  --danger:#C0392B;--danger-bg:#FEE2E0;
+  --border:#D4CFC6;--radius:10px;
+  --shadow:0 2px 12px rgba(28,43,58,0.08);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+.form-header{background:var(--navy);padding:22px 32px;display:flex;align-items:center;gap:14px}
+.logo{width:40px;height:40px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:#fff;letter-spacing:.05em;flex-shrink:0}
+.header-title h1{font-size:18px;font-weight:600;color:#fff;letter-spacing:-.02em}
+.header-title p{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px}
+.admin-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;letter-spacing:.04em}
+.body{max-width:860px;margin:0 auto;padding:28px 20px 60px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--cream-dark);display:flex;align-items:center;gap:9px}
+.ci{width:26px;height:26px;background:var(--cream);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.kv{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--cream-dark);font-size:13px}
+.kv:last-child{border-bottom:none}
+.kl{color:var(--text-mid)}.kv-val{font-weight:500}
+.total-pill{background:var(--navy);color:#fff;border-radius:8px;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.total-pill .tl{font-size:13px;font-weight:500}.total-pill .ta{font-family:'DM Mono',monospace;font-size:17px;font-weight:600}
+/* Approval lines */
+.aline{border:1.5px solid var(--border);border-radius:9px;background:#FAFAF8;margin-bottom:12px;overflow:hidden;transition:border-color .2s}
+.aline.approved{border-color:var(--success);background:#F0FAF4}
+.aline.denied{border-color:var(--danger);background:#FFF5F5}
+.aline-header{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:11px 14px;background:#F2EFE9;border-bottom:1px solid var(--border)}
+.aline.approved .aline-header{background:#E0F5E8;border-bottom-color:#a7f3d0}
+.aline.denied .aline-header{background:#FEE8E8;border-bottom-color:#fca5a5}
+.lnum{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lnum.app{background:var(--success)}.lnum.den{background:var(--danger)}
+.lmeta{font-size:12px;color:var(--text-mid)}
+.lmeta strong{color:var(--text);font-size:13px}
+.lmeta-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px;align-items:center}
+.ltag{font-size:10px;padding:2px 7px;border-radius:12px;font-weight:600}
+.lt-cat{background:var(--cream-dark);color:var(--text-mid)}
+.lt-job{background:#dbeafe;color:#1e40af}
+.lt-flag{background:#FEF3C7;color:#92400E}
+.lt-late-warn{background:#FEF3C7;color:#92400E}
+.lt-late-danger{background:var(--danger-bg);color:var(--danger)}
+.lt-receipt{background:var(--success-bg);color:var(--success)}
+.lt-noreceipt{background:var(--warning-bg);color:var(--warning)}
+.lamount{font-family:'DM Mono',monospace;font-size:16px;font-weight:600;white-space:nowrap}
+.lamount.app{color:var(--success)}.lamount.den{color:var(--danger);text-decoration:line-through}
+.aline-body{padding:14px 16px}
+/* Decision toggle */
+.decision-row{display:flex;gap:8px;margin-bottom:12px}
+.dec-btn{flex:1;padding:9px 12px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text-mid);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.dec-btn:hover{border-color:var(--navy-light)}
+.dec-btn.approve.active{background:var(--success-bg);border-color:var(--success);color:var(--success)}
+.dec-btn.deny.active{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+.comment-row{display:flex;flex-direction:column;gap:4px}
+.comment-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mid)}
+.comment-label.req{color:var(--danger)}
+.comment-input{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);background:#fff;outline:none;resize:vertical;min-height:52px;transition:border-color .15s}
+.comment-input:focus{border-color:var(--navy-light);box-shadow:0 0 0 3px rgba(61,90,128,.1)}
+.comment-input.err{border-color:var(--danger)!important}
+.receipt-info{font-size:11px;padding:7px 10px;border-radius:6px;background:#EBF2FA;color:var(--navy-mid);margin-bottom:10px}
+/* Summary bar */
+.summary-bar{background:var(--navy);border-radius:9px;padding:14px 18px;display:flex;gap:24px;margin-bottom:16px;flex-wrap:wrap}
+.sb-item{display:flex;flex-direction:column;gap:2px}
+.sb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.45)}
+.sb-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:600;color:#fff}
+.sb-val.app{color:#6ee7b7}.sb-val.den{color:#fca5a5}.sb-val.pend{color:#fcd34d}
+.alert{padding:10px 14px;border-radius:7px;font-size:12px;display:flex;align-items:flex-start;gap:9px;margin-bottom:12px;line-height:1.5}
+.alert.warning{background:var(--warning-bg);border-left:3px solid #D97706;color:var(--warning)}
+.alert.danger{background:var(--danger-bg);border-left:3px solid var(--danger);color:var(--danger)}
+.alert.info{background:#EBF2FA;border-left:3px solid var(--navy-light);color:var(--navy-mid)}
+.ai{font-size:14px;flex-shrink:0;margin-top:1px}
+/* Overall decision */
+.overall-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.ov-btn{padding:13px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:2px solid var(--border);background:#fff;color:var(--text-mid);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.ov-btn.approve.active{background:var(--success-bg);border-color:var(--success);color:var(--success)}
+.ov-btn.deny.active{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+label{font-size:11px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.06em}
+textarea,input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;transition:border-color .15s;outline:none}
+textarea{resize:vertical;min-height:72px}
+textarea:focus,input:focus{border-color:var(--navy-light);box-shadow:0 0 0 3px rgba(61,90,128,.1)}
+.btn{padding:11px 24px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:7px}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy-light)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.form-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--cream-dark)}
+.confirm{text-align:center;padding:36px 16px}
+.confirm-icon{font-size:48px;margin-bottom:14px}
+.confirm h2{font-size:22px;font-weight:600;color:var(--navy);margin-bottom:8px}
+.confirm p{font-size:14px;color:var(--text-mid);line-height:1.6;max-width:420px;margin:0 auto 16px}
+.confirm .ref{font-family:'DM Mono',monospace;font-size:12px;background:var(--cream);border:1px solid var(--border);border-radius:5px;padding:5px 14px;display:inline-block;color:var(--text-mid);margin-bottom:16px}
+.demo-notice{background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:12px 16px;font-size:12px;color:#92400E;margin-bottom:20px;line-height:1.5}
+@media(max-width:600px){
+  .form-header{padding:16px}.body{padding:16px 12px 48px}
+  .overall-row{grid-template-columns:1fr}
+  .summary-bar{gap:14px}
+}
+</style>
+</head>
+<body>
+
+<div class="form-header">
+  <div class="logo">CPPM</div>
+  <div class="header-title">
+    <h1>Expense Approval</h1>
+    <p>Review and approve or deny each expense line</p>
+  </div>
+  <div class="admin-badge">ADMIN</div>
+</div>
+
+<div class="body">
+
+  <!-- DEMO NOTICE — remove this block after Power Automate is wired up -->
+  <div class="demo-notice">
+    <strong>📋 Demo mode:</strong> This page is showing sample data so you can preview the approval flow. Once Power Automate is set up, you'll receive a unique link per submission with the real expense data pre-loaded. <a href="#" onclick="loadDemo();return false" style="color:#92400E;font-weight:600">Reload demo data →</a>
+  </div>
+
+  <div id="main" style="display:none">
+
+    <!-- Report summary -->
+    <div class="card">
+      <div class="card-title"><div class="ci">👤</div>Report Summary</div>
+      <div class="kv"><span class="kl">Employee</span><span class="kv-val" id="rv-name">—</span></div>
+      <div class="kv"><span class="kl">Email</span><span class="kv-val" id="rv-email">—</span></div>
+      <div class="kv"><span class="kl">Submission Date</span><span class="kv-val" id="rv-subdate">—</span></div>
+      <div class="kv"><span class="kl">Report Purpose</span><span class="kv-val" id="rv-purpose">—</span></div>
+      <div class="kv" id="rv-notes-row" style="display:none"><span class="kl">Employee Notes</span><span class="kv-val" id="rv-notes">—</span></div>
+      <div class="total-pill"><span class="tl">Total Requested</span><span class="ta" id="rv-total">$0.00</span></div>
+    </div>
+
+    <!-- Flags summary -->
+    <div id="flags-card" class="card" style="display:none">
+      <div class="card-title"><div class="ci">⚠️</div>Items Needing Attention</div>
+      <div id="flags-body"></div>
+    </div>
+
+    <!-- Running totals bar -->
+    <div class="summary-bar">
+      <div class="sb-item"><div class="sb-label">Pending</div><div class="sb-val pend" id="sb-pend">—</div></div>
+      <div class="sb-item"><div class="sb-label">Approved</div><div class="sb-val app" id="sb-app">$0.00</div></div>
+      <div class="sb-item"><div class="sb-label">Denied</div><div class="sb-val den" id="sb-den">$0.00</div></div>
+      <div class="sb-item"><div class="sb-label">Lines</div><div class="sb-val" id="sb-lines" style="color:rgba(255,255,255,.7)">0 of 0</div></div>
+    </div>
+
+    <!-- Expense lines -->
+    <div class="card">
+      <div class="card-title"><div class="ci">📋</div>Expense Lines — Approve or Deny Each</div>
+      <div class="alert info"><span class="ai">ℹ️</span><div>Review each line below. <strong>Approve</strong> or <strong>Deny</strong> every line before submitting your decision. Add a comment on any denied line — it will be included in the email to the employee.</div></div>
+      <div id="lines-container"></div>
+    </div>
+
+    <!-- Overall decision & message -->
+    <div class="card">
+      <div class="card-title"><div class="ci">✉️</div>Overall Decision &amp; Message to Employee</div>
+      <div class="alert info" style="margin-bottom:16px"><span class="ai">ℹ️</span><div>This message will be sent to the employee along with the line-by-line breakdown. The overall status is set automatically based on your line decisions — <strong>Approved</strong> if all lines pass, <strong>Partially Approved</strong> if some are denied, <strong>Denied</strong> if all lines are denied.</div></div>
+      <div class="fg">
+        <label>Message to Employee</label>
+        <textarea id="overallMsg" placeholder="Optional — add any additional context, next steps, or resubmission instructions for the employee…"></textarea>
+      </div>
+      <div class="fg">
+        <label>Your Name (for the email signature)</label>
+        <input id="adminName" type="text" placeholder="e.g. Bailey Schureck" value="Bailey Schureck"/>
+      </div>
+    </div>
+
+    <div id="submitWarn" class="alert danger" style="display:none"><span class="ai">🚫</span><span id="submitWarnTxt"></span></div>
+
+    <div class="form-nav">
+      <div style="font-size:12px;color:var(--text-light)" id="progress-note">Review all lines to submit</div>
+      <button class="btn btn-primary" onclick="submitDecision()">Send Decision to Employee →</button>
+    </div>
+  </div>
+
+  <!-- Confirmation -->
+  <div id="confirm-screen" style="display:none">
+    <div class="card"><div class="confirm">
+      <div class="confirm-icon" id="conf-icon">✅</div>
+      <h2 id="conf-title">Decision Sent</h2>
+      <p id="conf-msg">The employee has been notified of your decision.</p>
+      <div class="ref" id="conf-ref">EXP-XXXXXX</div>
+      <div style="font-size:12px;color:var(--text-light);max-width:380px;margin:0 auto">The approval record has been logged. You can close this tab.</div>
+    </div></div>
+  </div>
+
+</div>
+
+<script>
+// ─── Sample / Demo Data ───────────────────────────────────────────────────────
+// In production, Power Automate passes real data via URL params or a token.
+// See the setup guide for how to pass reportData into this page.
+const DEMO_DATA = {
+  refNumber: 'EXP-2026-47291',
+  firstName: 'Jane', lastName: 'Smith',
+  email: 'jsmith@certapro.com',
+  submissionDate: '2026-11-17',
+  purpose: 'Site visit — Job #2026-0147, Nov 14–15',
+  adminNotes: 'Had to book hotel last minute — rates were higher than usual.',
+  totalAmount: 247.50,
+  lines: [
+    {id:1,date:'2026-11-14',category:'Breakfast (Per Diem)',desc:'Breakfast at hotel café',job:'2026-0147',amount:12.50,receipt:'receipt_breakfast.jpg',noReceipt:false,noReceiptReason:'',amtFlagged:false,flagContext:'',lateStatus:'ok',lateDays:3},
+    {id:2,date:'2026-11-14',category:'Lodging',desc:'Hampton Inn — 1 night',job:'2026-0147',amount:218.00,receipt:'',noReceipt:false,noReceiptReason:'',amtFlagged:true,flagContext:'Only option near job site — booked same day.',lateStatus:'ok',lateDays:3},
+    {id:3,date:'2026-11-15',category:'Dinner (Per Diem)',desc:'Dinner on way back',job:'',amount:17.00,receipt:'receipt_dinner.jpg',noReceipt:false,noReceiptReason:'',amtFlagged:false,flagContext:'',lateStatus:'ok',lateDays:2},
+  ]
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let reportData = null;
+const lineDecisions = {}; // lid → { decision: 'approve'|'deny', comment: '' }
+
+// ─── Load ─────────────────────────────────────────────────────────────────────
+function loadDemo() { loadReport(DEMO_DATA); }
+
+function loadReport(data) {
+  reportData = data;
+  data.lines.forEach(function(l) {
+    lineDecisions[l.id] = { decision: null, comment: '' };
+  });
+  renderReport();
+  document.getElementById('main').style.display = '';
+}
+
+function renderReport() {
+  var d = reportData;
+  document.getElementById('rv-name').textContent = d.firstName + ' ' + d.lastName;
+  document.getElementById('rv-email').textContent = d.email;
+  document.getElementById('rv-subdate').textContent = d.submissionDate;
+  document.getElementById('rv-purpose').textContent = d.purpose;
+  document.getElementById('rv-total').textContent = '$' + d.totalAmount.toFixed(2);
+  if (d.adminNotes) {
+    document.getElementById('rv-notes').textContent = d.adminNotes;
+    document.getElementById('rv-notes-row').style.display = '';
+  }
+
+  // Flags
+  var flags = d.lines.filter(function(l) { return l.amtFlagged || l.lateStatus !== 'ok' || (!l.receipt && !l.noReceipt); });
+  if (flags.length) {
+    var fc = document.getElementById('flags-card');
+    fc.style.display = '';
+    document.getElementById('flags-body').innerHTML = flags.map(function(l) {
+      var msgs = [];
+      if (l.amtFlagged) msgs.push('Amount flagged — context: "' + (l.flagContext || 'none') + '"');
+      if (l.lateStatus === 'danger') msgs.push('⚠ ' + l.lateDays + ' days old — may not be eligible');
+      if (l.lateStatus === 'warn') msgs.push('⏱ ' + l.lateDays + ' days old — past 14-day window');
+      if (!l.receipt && !l.noReceipt) msgs.push('No receipt and no exemption provided');
+      return '<div class="alert warning" style="margin-bottom:8px"><span class="ai">⚠️</span><div><strong>Line ' + l.id + ': ' + l.desc + ' ($' + l.amount.toFixed(2) + ')</strong><br>' + msgs.join(' · ') + '</div></div>';
+    }).join('');
+  }
+
+  // Lines
+  var container = document.getElementById('lines-container');
+  container.innerHTML = '';
+  d.lines.forEach(function(l) {
+    var el = document.createElement('div');
+    el.className = 'aline';
+    el.id = 'aline-' + l.id;
+
+    var tags = '<span class="ltag lt-cat">' + l.category + '</span>';
+    if (l.job) tags += ' <span class="ltag lt-job">Job #' + l.job + '</span>';
+    if (l.amtFlagged) tags += ' <span class="ltag lt-flag">⚑ Amount flagged</span>';
+    if (l.lateStatus === 'warn') tags += ' <span class="ltag lt-late-warn">⏱ ' + l.lateDays + 'd late</span>';
+    if (l.lateStatus === 'danger') tags += ' <span class="ltag lt-late-danger">🚫 ' + l.lateDays + 'd — may not be eligible</span>';
+    if (l.receipt) tags += ' <span class="ltag lt-receipt">✓ Receipt attached</span>';
+    else if (l.noReceipt) tags += ' <span class="ltag lt-noreceipt">No receipt: ' + l.noReceiptReason + '</span>';
+
+    var receiptInfo = '';
+    if (l.receipt) receiptInfo = '<div class="receipt-info">📎 Receipt: ' + l.receipt + ' — attached in original submission</div>';
+    else if (l.noReceipt) receiptInfo = '<div class="receipt-info" style="background:#FFFBEB;color:#92400E">⚠ No receipt — reason: ' + l.noReceiptReason + '</div>';
+    if (l.amtFlagged) receiptInfo += '<div class="receipt-info" style="background:#FFFBEB;color:#92400E;margin-top:6px">⚑ Flagged amount — employee note: "' + (l.flagContext || 'No context provided') + '"</div>';
+
+    el.innerHTML =
+      '<div class="aline-header">' +
+        '<div class="lnum" id="lnum-' + l.id + '">' + l.id + '</div>' +
+        '<div class="lmeta">' +
+          '<strong>' + l.desc + '</strong>' +
+          '<div class="lmeta-row">' + tags + '</div>' +
+        '</div>' +
+        '<div class="lamount" id="lamount-' + l.id + '">$' + l.amount.toFixed(2) + '</div>' +
+      '</div>' +
+      '<div class="aline-body">' +
+        receiptInfo +
+        '<div class="decision-row">' +
+          '<button class="dec-btn approve" id="app-btn-' + l.id + '" onclick="setDecision(' + l.id + ',\'approve\')">✓ Approve</button>' +
+          '<button class="dec-btn deny" id="den-btn-' + l.id + '" onclick="setDecision(' + l.id + ',\'deny\')">✕ Deny</button>' +
+        '</div>' +
+        '<div class="comment-row">' +
+          '<div class="comment-label" id="comment-label-' + l.id + '">Comment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-light)">(optional for approvals, recommended for denials)</span></div>' +
+          '<textarea class="comment-input" id="comment-' + l.id + '" placeholder="e.g. Approved — within policy. / Denied — over lodging cap, prior approval required." oninput="onCommentChange(' + l.id + ')"></textarea>' +
+        '</div>' +
+      '</div>';
+
+    container.appendChild(el);
+  });
+  updateSummaryBar();
+}
+
+function setDecision(lid, decision) {
+  lineDecisions[lid].decision = decision;
+  var appBtn = document.getElementById('app-btn-' + lid);
+  var denBtn = document.getElementById('den-btn-' + lid);
+  var aline = document.getElementById('aline-' + lid);
+  var lnum = document.getElementById('lnum-' + lid);
+  var lamount = document.getElementById('lamount-' + lid);
+  var commentLabel = document.getElementById('comment-label-' + lid);
+
+  appBtn.className = 'dec-btn approve' + (decision === 'approve' ? ' active' : '');
+  denBtn.className = 'dec-btn deny' + (decision === 'deny' ? ' active' : '');
+  aline.className = 'aline ' + (decision === 'approve' ? 'approved' : 'denied');
+  lnum.className = 'lnum ' + (decision === 'approve' ? 'app' : 'den');
+  lamount.className = 'lamount ' + (decision === 'approve' ? 'app' : 'den');
+
+  if (decision === 'deny') {
+    commentLabel.innerHTML = 'Reason for Denial <span class="req" style="color:var(--danger)">*</span>';
+  } else {
+    commentLabel.innerHTML = 'Comment <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-light)">(optional)</span>';
+  }
+
+  updateSummaryBar();
+}
+
+function onCommentChange(lid) {
+  lineDecisions[lid].comment = document.getElementById('comment-' + lid).value;
+}
+
+function updateSummaryBar() {
+  var approved = 0, denied = 0, pending = 0, approvedAmt = 0, deniedAmt = 0;
+  reportData.lines.forEach(function(l) {
+    var dec = lineDecisions[l.id].decision;
+    if (dec === 'approve') { approved++; approvedAmt += l.amount; }
+    else if (dec === 'deny') { denied++; deniedAmt += l.amount; }
+    else pending++;
+  });
+  var total = reportData.lines.length;
+  document.getElementById('sb-pend').textContent = pending + ' line' + (pending !== 1 ? 's' : '');
+  document.getElementById('sb-app').textContent = '$' + approvedAmt.toFixed(2);
+  document.getElementById('sb-den').textContent = '$' + deniedAmt.toFixed(2);
+  document.getElementById('sb-lines').textContent = (approved + denied) + ' of ' + total + ' reviewed';
+  var note = document.getElementById('progress-note');
+  if (pending === 0) note.textContent = '✓ All lines reviewed — ready to submit';
+  else note.textContent = pending + ' line' + (pending !== 1 ? 's' : '') + ' still need a decision';
+}
+
+function submitDecision() {
+  // Validate all lines have a decision
+  var missing = [];
+  reportData.lines.forEach(function(l) {
+    var dec = lineDecisions[l.id];
+    if (!dec.decision) missing.push(l.id);
+    if (dec.decision === 'deny' && !dec.comment.trim()) missing.push('comment-' + l.id);
+  });
+  if (missing.length) {
+    var w = document.getElementById('submitWarn'), wt = document.getElementById('submitWarnTxt');
+    wt.textContent = 'Please approve or deny every line. Denied lines require a reason.';
+    w.style.display = 'flex';
+    // Highlight missing
+    reportData.lines.forEach(function(l) {
+      var dec = lineDecisions[l.id];
+      if (!dec.decision) document.getElementById('aline-' + l.id).style.outline = '2px solid var(--danger)';
+      else document.getElementById('aline-' + l.id).style.outline = 'none';
+      if (dec.decision === 'deny' && !dec.comment.trim()) document.getElementById('comment-' + l.id).classList.add('err');
+      else document.getElementById('comment-' + l.id).classList.remove('err');
+    });
+    setTimeout(function() { w.style.display = 'none'; }, 6000);
+    return;
+  }
+
+  // Determine overall status
+  var allApproved = reportData.lines.every(function(l) { return lineDecisions[l.id].decision === 'approve'; });
+  var allDenied = reportData.lines.every(function(l) { return lineDecisions[l.id].decision === 'deny'; });
+  var overallStatus = allApproved ? 'Approved' : allDenied ? 'Denied' : 'Partially Approved';
+
+  // Build payload for Power Automate callback
+  var approvedAmt = 0, deniedAmt = 0;
+  var lineResults = reportData.lines.map(function(l) {
+    var dec = lineDecisions[l.id];
+    if (dec.decision === 'approve') approvedAmt += l.amount;
+    else deniedAmt += l.amount;
+    return {
+      lineId: l.id,
+      date: l.date,
+      description: l.desc,
+      category: l.category,
+      amount: l.amount,
+      decision: dec.decision,
+      comment: dec.comment
+    };
+  });
+
+  var payload = {
+    refNumber: reportData.refNumber,
+    submitterName: reportData.firstName + ' ' + reportData.lastName,
+    submitterEmail: reportData.email,
+    overallStatus: overallStatus,
+    approvedAmount: approvedAmt,
+    deniedAmount: deniedAmt,
+    adminMessage: document.getElementById('overallMsg').value,
+    adminName: document.getElementById('adminName').value || 'Admin',
+    lineResults: lineResults
+  };
+
+  // POST to Power Automate callback URL if set
+  // The CALLBACK_URL is passed in from Power Automate when generating this page's link
+  var callbackUrl = getParam('callback');
+  if (callbackUrl) {
+    fetch(callbackUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function() {
+      showConfirm(overallStatus, payload);
+    }).catch(function() {
+      alert('Could not send decision — please try again or email the employee directly.');
+    });
+  } else {
+    // Demo mode — just show confirmation
+    console.log('Decision payload:', JSON.stringify(payload, null, 2));
+    showConfirm(overallStatus, payload);
+  }
+}
+
+function showConfirm(status, payload) {
+  document.getElementById('main').style.display = 'none';
+  var cs = document.getElementById('confirm-screen');
+  cs.style.display = '';
+  var icons = { 'Approved': '✅', 'Partially Approved': '⚠️', 'Denied': '❌' };
+  document.getElementById('conf-icon').textContent = icons[status] || '✅';
+  document.getElementById('conf-title').textContent = status + ' — Decision Sent';
+  document.getElementById('conf-ref').textContent = payload.refNumber;
+  var approvedCount = payload.lineResults.filter(function(l) { return l.decision === 'approve'; }).length;
+  var deniedCount = payload.lineResults.filter(function(l) { return l.decision === 'deny'; }).length;
+  document.getElementById('conf-msg').textContent =
+    payload.submitterName + ' has been notified. ' +
+    approvedCount + ' line' + (approvedCount !== 1 ? 's' : '') + ' approved ($' + payload.approvedAmount.toFixed(2) + ')' +
+    (deniedCount ? ', ' + deniedCount + ' denied ($' + payload.deniedAmount.toFixed(2) + ').' : '.');
+}
+
+function getParam(name) {
+  var params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+// Auto-load: in production Power Automate passes ?data=<base64 encoded JSON>
+// For demo, load sample data automatically
+(function() {
+  var encoded = getParam('data');
+  if (encoded) {
+    try {
+      var data = JSON.parse(atob(encoded));
+      // Parse expenseLines if it's a plain-text pipe-delimited string
+      if (typeof data.expenseLines === 'string') {
+        var lines = data.expenseLines.split('\n').filter(function(l) { return l.trim(); });
+        data.lines = lines.map(function(l, i) {
+          var parts = l.split('|').map(function(p) { return p.trim(); });
+          // Format: date | category | description | amount | job
+          var amtStr = (parts[3] || '0').replace('$','').replace(',','');
+          return {
+            id: 'L' + (i+1),
+            date: parts[0] || '',
+            category: parts[1] || 'Other',
+            desc: parts[2] || '',
+            amount: parseFloat(amtStr) || 0,
+            job: parts[4] ? parts[4].replace('Job:','') : 'N/A',
+            receipt: true,
+            noReceipt: false,
+            lateStatus: 'ok',
+            lateDays: 0,
+            amtFlagged: false
+          };
+        });
+      }
+      loadReport(data);
+    } catch(e) {
+      console.error('Failed to parse data param:', e);
+      loadDemo();
+    }
+  } else {
+    loadDemo();
+  }
+})();
+</script>
+</body>
+</html>
